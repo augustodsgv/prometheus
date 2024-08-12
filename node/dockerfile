@@ -1,0 +1,27 @@
+FROM ubuntu:latest
+
+# Update apt
+RUN apt update && apt upgrade -y
+
+# Setting up node exporter
+WORKDIR /opt/
+RUN apt install wget tar -y
+RUN wget https://github.com/prometheus/node_exporter/releases/download/v1.8.2/node_exporter-1.8.2.linux-amd64.tar.gz
+RUN tar xvf node_exporter-1.8.2.linux-amd64.tar.gz
+RUN mv node_exporter-1.8.2.linux-amd64 node_exporter
+ENV PATH="/opt/node_exporter:$PATH"
+
+# Setting up python environment
+RUN apt install python3 python3-pip python3-venv -y
+WORKDIR /home
+RUN python3 -m venv venv
+ENV PATH="/home/venv/bin:$PATH"
+COPY ./requirements.txt .
+RUN pip install -r requirements.txt
+
+# Setting project up
+COPY ./src /home/src
+
+# Running init script
+COPY run.sh ./run.sh
+CMD ./run.sh
